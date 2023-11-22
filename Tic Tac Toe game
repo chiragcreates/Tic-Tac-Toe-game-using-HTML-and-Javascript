@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Tic Tac Toe</title>
+
+  <style>
+
+    body {
+
+      font-family: Arial, sans-serif;
+
+      display: flex;
+
+
+      align-items: center;
+
+      height: 100vh;
+
+      margin: 0;
+
+      background-color: #000;
+
+      color: #fff;
+      
+      justify-content: center;
+
+    }
+
+    #start-dialog-box {
+
+      display: flex;
+
+      flex-direction: column;
+
+      align-items: center;
+
+      justify-content: center;
+
+      position: fixed;
+
+      top: 50%;
+
+      left: 50%;
+      
+      width: 80%;
+      
+      height: 90%;
+      
+      border-radius: 25px;
+
+      transform: translate(-50%, -50%);
+
+      background: #fff;
+
+      padding: 20px;
+
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+      z-index: 2;
+      
+      color: #111;
+
+    }
+
+    #start-dialog-box button {
+
+      margin: 10px;
+
+      padding: 10px;
+
+      font-size: 1em;
+
+      cursor: pointer;
+      
+      border-radius: 20px;
+      
+      background-color: #111;
+      
+      color: #fff;
+
+    }
+
+    .board {
+
+      display: grid;
+
+      grid-template-columns: repeat(3, 100px);
+
+      grid-gap: 5px;
+
+      margin: 20px;
+      
+
+
+
+    }
+
+
+
+    .cell {
+
+      width: 100px;
+
+      height: 100px;
+
+      border: 2px solid #111;
+      
+      border-radius: 10px;
+
+      font-size: 2em;
+
+      cursor: pointer;
+      
+      background-color: #fff;
+      
+      display: flex;
+      
+      color: #111;
+      
+      text-align: center;
+      
+      align-items: center;
+      
+      justify-content: center;
+
+    }
+
+    #result {
+
+      margin-top: 20px;
+
+    }
+
+    #dialog-box {
+
+      display: none;
+
+      position: fixed;
+
+      top: 50%;
+
+      left: 50%;
+
+      transform: translate(-50%, -50%);
+
+      background: #fff;
+
+      padding: 20px;
+
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+      z-index: 2;
+      
+      justify-content: center;
+      
+      text-align: center;
+      
+      color: #111;
+      
+      border-radius: 25px;
+
+    }
+    #dialog-box button {
+
+    margin-top: 20px; 
+      
+    border-radius: 50px;
+
+      background-color: #111;
+      
+      color: #fff;
+
+  }
+
+  @media (min-width: 768px) {
+
+    #dialog-box {
+
+      flex-direction: row;
+
+      justify-content: center;
+
+    }
+
+    #dialog-box button {
+
+      margin-top: 0; 
+
+      margin-left: 10px; 
+
+    }
+
+  }
+
+
+  </style>
+
+</head>
+
+<body>
+
+<div id="start-dialog-box">
+
+  <h2>Tic Tac Toe </h2>
+
+  <button onclick="startGameWithBot()">Play with AI</button>
+
+  <button onclick="startGameWithFriend()">Play with Friend</button>
+
+</div>
+
+<div id="result"></div>
+
+<div class="board" onclick="handleCellClick(event)">
+
+  <div class="cell" data-index="0"></div>
+
+  <div class="cell" data-index="1"></div>
+
+  <div class="cell" data-index="2"></div>
+
+  <div class="cell" data-index="3"></div>
+
+  <div class="cell" data-index="4"></div>
+
+  <div class="cell" data-index="5"></div>
+
+  <div class="cell" data-index="6"></div>
+
+  <div class="cell" data-index="7"></div>
+
+  <div class="cell" data-index="8"></div>
+
+</div>
+
+
+
+  <div id="dialog-box">
+
+  <p id="dialog-message"></p>
+
+  <button onclick="resetGame()">play Again! </button>
+
+  <button onclick="goToHome()" >Home</button>
+
+</div>
+
+<script>
+
+  let playWithBot = false;
+
+  const board = Array(9).fill('');
+
+  let currentPlayer = 'X';
+
+  let gameOver = false;
+  
+  function playTappingSound() {
+
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    const oscillator = audioContext.createOscillator();
+
+    oscillator.connect(audioContext.destination);
+
+    oscillator.type = 'sine';
+
+    oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+
+    oscillator.start();
+
+    oscillator.stop(audioContext.currentTime + 0.1);
+
+  }
+
+  function startGameWithBot() {
+
+    playWithBot = true;
+
+    document.getElementById('start-dialog-box').style.display = 'none';
+
+  }
+
+  function startGameWithFriend() {
+
+    playWithBot = false;
+
+    document.getElementById('start-dialog-box').style.display = 'none';
+
+  }
+
+  function handleCellClick(event) {
+
+    if (gameOver) return;
+
+    const clickedCell = event.target;
+
+    const cellIndex = clickedCell.dataset.index;
+
+
+
+  if (board[cellIndex] === '') {
+
+      board[cellIndex] = currentPlayer;
+
+      clickedCell.textContent = currentPlayer;
+
+      playTappingSound(); // Play tapping sound when user clicks a cell
+
+      if (checkWinner()) {
+
+        displayDialog(`${currentPlayer} wins!`);
+
+        gameOver = true;
+
+      } else if (board.every(cell => cell !== '')) {
+
+        displayDialog('It\'s a tie!');
+
+        gameOver = true;
+
+      } else {
+
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+
+        if (playWithBot && currentPlayer === 'O') {
+
+          setTimeout(() => {
+
+            botMove();
+
+            playTappingSound(); // Play tapping sound when bot makes a move
+
+          }, 500);
+
+        }
+
+      }
+
+    }
+
+  }
+  
+
+  function botMove() {
+
+    if (gameOver) return;
+
+    const winningMoveIndex = getWinningMoveIndex('O');
+
+    const blockingMoveIndex = getWinningMoveIndex('X');
+
+    if (winningMoveIndex !== -1) {
+
+      makeMove(winningMoveIndex);
+
+    } else if (blockingMoveIndex !== -1) {
+
+      makeMove(blockingMoveIndex);
+
+    } else {
+
+      makeRandomMove();
+
+    }
+
+  }
+
+  function getWinningMoveIndex(player) {
+
+    for (let i = 0; i < board.length; i++) {
+
+      if (board[i] === '') {
+
+        board[i] = player;
+
+        if (checkWinner()) {
+
+          board[i] = ''; // Reset the move
+
+          return i;
+
+        }
+
+        board[i] = ''; // Reset the move
+
+      }
+
+    }
+
+    return -1;
+
+  }
+
+  function makeMove(index) {
+
+    board[index] = currentPlayer;
+
+    document.querySelector(`[data-index="${index}"]`).textContent = currentPlayer;
+
+    if (checkWinner()) {
+
+      displayDialog(`${currentPlayer} wins!`);
+
+      gameOver = true;
+
+    } else if (board.every(cell => cell !== '')) {
+
+      displayDialog('It\'s a tie!');
+
+      gameOver = true;
+
+    } else {
+
+      currentPlayer = 'X';
+
+    }
+
+  }
+
+  function makeRandomMove() {
+
+    let emptyCells = board.reduce((acc, cell, index) => {
+
+      if (cell === '') {
+
+        acc.push(index);
+
+      }
+
+      return acc;
+
+    }, []);
+
+    const randomIndex = Math.floor(Math.random() * emptyCells.length);
+
+    const botMoveIndex = emptyCells[randomIndex];
+
+    makeMove(botMoveIndex);
+
+  }
+
+  function checkWinner() {
+
+    const winPatterns = [
+
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+
+      [0, 4, 8], [2, 4, 6]             // Diagonals
+
+    ];
+
+    return winPatterns.some(pattern => {
+
+      const [a, b, c] = pattern;
+
+      return board[a] !== '' && board[a] === board[b] && board[b] === board[c];
+
+    });
+
+  }
+
+  function displayDialog(message) {
+
+    document.getElementById('dialog-message').textContent = message;
+
+    document.getElementById('dialog-box').style.display = 'block';
+
+  }
+
+  function resetGame() {
+
+    board.fill('');
+
+    document.querySelectorAll('.cell').forEach(cell => cell.textContent = '');
+
+    document.getElementById('dialog-box').style.display = 'none';
+
+    document.getElementById('result').textContent = '';
+
+    currentPlayer = 'X';
+
+    gameOver = false;
+
+    if (playWithBot && currentPlayer === 'O') {
+
+      setTimeout(() => botMove(), 500);
+
+    }
+
+  }
+
+  // Trigger bot move on page load if playing with bot
+
+  if (playWithBot && currentPlayer === 'O') {
+
+    setTimeout(() => botMove(), 500);
+
+  }
+  
+  function goToHome() {
+
+    window.location.reload(); // You can replace this with the URL of your home page
+
+  }
+
+</script>
+
+</body>
+
+</html
